@@ -1,4 +1,4 @@
-require('dotenv').config(); // Cargar las variables de entorno
+require('dotenv').config({ path: '/etc/secrets/.env' });
 const express = require('express');
 const bodyParser = require('body-parser');
 const twilio = require('twilio');
