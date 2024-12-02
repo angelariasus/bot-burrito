@@ -8,6 +8,7 @@ const axios = require('axios');
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+const number = process.env.YOUR_PHONE_NUMBER;
 const client = twilio(accountSid, authToken);
 
 console.log('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID);
@@ -74,7 +75,7 @@ app.post('/webhook', async (req, res) => {
   await client.messages.create({
     body: responseMessage,
     from: fromNumber,  // Tu número de Twilio
-    to: from          // Número del usuario
+    to: number          // Número del usuario
   });
 
   res.send('<Response></Response>'); // Respuesta vacía de Twilio
