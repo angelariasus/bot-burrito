@@ -1,19 +1,18 @@
 require('dotenv').config({ path: '/etc/secrets/.env' });
 const express = require('express');
-const bodyParser = require('body-parser');
-const twilio = require('twilio');
 const axios = require('axios');
+const twilio = require('twilio');
 
 // Obtener las credenciales de Twilio desde las variables de entorno
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const fromNumber = process.env.TWILIO_PHONE_NUMBER;
-const number = process.env.YOUR_PHONE_NUMBER;
+const fromNumber = process.env.TWILIO_PHONE_NUMBER; // Número de Twilio
 const client = twilio(accountSid, authToken);
 
 // Crear una instancia de Express
 const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 // URL de la API
 const apiUrl = 'https://api.contigosanmarcos.com/status?count=1'; // Reemplaza con la URL de tu API
@@ -71,7 +70,7 @@ app.post('/webhook', async (req, res) => {
   await client.messages.create({
     body: responseMessage,
     from: fromNumber,  // Tu número de Twilio
-    to: number          // Número del usuario
+    to: from          // Número del usuario que envió el mensaje
   });
 
   res.send('<Response></Response>'); // Respuesta vacía de Twilio
