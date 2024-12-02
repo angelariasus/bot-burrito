@@ -11,10 +11,6 @@ const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 const number = process.env.YOUR_PHONE_NUMBER;
 const client = twilio(accountSid, authToken);
 
-console.log('TWILIO_ACCOUNT_SID:', process.env.TWILIO_ACCOUNT_SID);
-console.log('TWILIO_AUTH_TOKEN:', process.env.TWILIO_AUTH_TOKEN);
-console.log('TWILIO_PHONE_NUMBER:', process.env.TWILIO_PHONE_NUMBER);
-
 // Crear una instancia de Express
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
