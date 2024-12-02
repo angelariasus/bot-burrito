@@ -56,10 +56,10 @@ app.post('/webhook', async (req, res) => {
 
   let responseMessage = 'Lo siento, no entiendo ese comando.';
 
-  if (message === 'Bus') {
+  if (message === 'bus') {
     responseMessage = await obtenerInformacionDelBus();
-  } else if (message === 'Ayuda') {
-    responseMessage = 'Envía "Bus" para obtener la información del Bus.';
+  } else if (message === 'ayuda') {
+    responseMessage = 'Envía "bus" para obtener la información del bus.';
   }
 
   await client.messages.create({
