@@ -52,6 +52,10 @@ async function obtenerInformacionDelBus() {
   }
 }
 
+app.get('/', (req, res) => {
+  res.send('¡Servidor funcionando!');
+});
+
 // Ruta que recibe los mensajes entrantes
 app.post('/webhook', async (req, res) => {
   const message = req.body.Body.trim().toLowerCase(); // Obtén el mensaje y conviértelo a minúsculas
