@@ -59,7 +59,7 @@ app.post('/webhook', async (req, res) => {
   if (message === 'Bus') {
     responseMessage = await obtenerInformacionDelBus();
   } else if (message === 'Ayuda') {
-    responseMessage = 'Envía "bus" para obtener la información del bus.';
+    responseMessage = 'Envía "Bus" para obtener la información del Bus.';
   }
 
   await client.messages.create({
