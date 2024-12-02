@@ -3,49 +3,43 @@ const express = require('express');
 const axios = require('axios');
 const twilio = require('twilio');
 
-// Obtener las credenciales de Twilio desde las variables de entorno
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const fromNumber = process.env.TWILIO_PHONE_NUMBER; // Número de Twilio
+const fromNumber = process.env.TWILIO_PHONE_NUMBER; 
 const client = twilio(accountSid, authToken);
 
-// Crear una instancia de Express
 const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// URL de la API
-const apiUrl = 'https://api.contigosanmarcos.com/status?count=1'; // Reemplaza con la URL de tu API
+const apiUrl = 'https://api.contigosanmarcos.com/status?count=1';
 
-// Función para obtener la información del bus
 async function obtenerInformacionDelBus() {
   try {
     const response = await axios.get(apiUrl);
     const { positions, last_stop } = response.data;
 
-    // Asegurarse de que last_stop no sea null
     const lastStopName = last_stop ? last_stop.name : 'Desconocida';
     const lastStopDistance = last_stop ? last_stop.distance?.toFixed(2) : 'Desconocida';
-    const lastStopHasReached = last_stop && last_stop.has_reached !== undefined ? (last_stop.has_reached ? 'Sí' : 'No') : 'Desconocida';
 
-    const batteryStatus = positions[0]?.bat !== null ? positions[0]?.bat : 'Desconocida';
+    const velocity = positions[0]?.velocity || 0; 
+    const estado = velocity > 0 ? 'En camino...' : 'Recogiendo pasajeros';
 
-    const mensaje = `🚍 **Información del Bus** 🚍
-    📍 Posición actual:
-       - Latitud: ${positions[0]?.lt || 'Desconocida'}
-       - Longitud: ${positions[0]?.lg || 'Desconocida'}
-       - Velocidad: ${positions[0]?.velocity || 'Desconocida'} km/h
-       - Batería: ${batteryStatus}%
+    const lat = positions[0]?.lt || 'Desconocida';
+    const lng = positions[0]?.lg || 'Desconocida';
 
-    🛑 Última parada:
-       - Nombre: ${lastStopName}
-       - Distancia: ${lastStopDistance} km
-       - Llegó: ${lastStopHasReached}
+    const mapsLink = lat !== 'Desconocida' && lng !== 'Desconocida' 
+      ? `https://www.google.com/maps?q=${lat},${lng}` 
+      : 'Desconocida';
 
-    📅 Hora del reporte: ${new Date(positions[0]?.timestamp?.secs_since_epoch * 1000).toLocaleString()}`;
-
+    const mensaje = `🚍 **Información del Burrito**:
+       - Paradero: ${lastStopName}
+       - Distancia: ${lastStopDistance} m
+       - Estado: ${estado} 
+       - Velocidad: ${velocity} km/h
+       - Ubicación: ${mapsLink}
+    `;
     return mensaje;
-
   } catch (error) {
     console.error('Error al obtener la información del bus:', error);
     return 'No se pudo obtener la información del bus en este momento.';
@@ -56,31 +50,27 @@ app.get('/', (req, res) => {
   res.send('¡Servidor funcionando!');
 });
 
-// Ruta que recibe los mensajes entrantes
 app.post('/webhook', async (req, res) => {
-  const message = req.body.Body.trim().toLowerCase(); // Obtén el mensaje y conviértelo a minúsculas
-  const from = req.body.From; // Número que envió el mensaje
+  const message = req.body.Body.trim().toLowerCase(); 
+  const from = req.body.From; 
 
   let responseMessage = 'Lo siento, no entiendo ese comando.';
 
-  // Comandos predefinidos
   if (message === 'bus') {
     responseMessage = await obtenerInformacionDelBus();
   } else if (message === 'ayuda') {
     responseMessage = 'Envía "bus" para obtener la información del bus.';
   }
 
-  // Enviar la respuesta a WhatsApp
   await client.messages.create({
     body: responseMessage,
-    from: fromNumber,  // Tu número de Twilio
-    to: from          // Número del usuario que envió el mensaje
+    from: fromNumber, 
+    to: from         
   });
 
-  res.send('<Response></Response>'); // Respuesta vacía de Twilio
+  res.send('<Response></Response>'); 
 });
 
-// Inicia el servidor en el puerto 3000
 app.listen(3000, () => {
   console.log('Servidor escuchando en el puerto 3000');
 });
