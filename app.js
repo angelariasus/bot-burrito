@@ -22,8 +22,8 @@ async function obtenerInformacionDelBus() {
     const lastStopName = last_stop ? last_stop.name : 'Desconocida';
     const lastStopDistance = last_stop ? last_stop.distance?.toFixed(2) : 'Desconocida';
 
-    const velocity = positions[0]?.velocity || 0; 
-    const estado = velocity > 0 ? 'En camino...' : 'Recogiendo pasajeros';
+    const velocity = positions[0]?.velocity || 'Desconocida'; 
+    const estado = velocity !== 'Desconocida' && velocity > 0 ? 'En camino...' : 'Recogiendo pasajeros'; 
 
     const lat = positions[0]?.lt || 'Desconocida';
     const lng = positions[0]?.lg || 'Desconocida';
@@ -32,12 +32,12 @@ async function obtenerInformacionDelBus() {
       ? `https://www.google.com/maps?q=${lat},${lng}` 
       : 'Desconocida';
 
-    const mensaje = `🚍 **Información del Burrito**:
-       - Paradero: ${lastStopName}
-       - Distancia: ${lastStopDistance} m
-       - Estado: ${estado} 
-       - Velocidad: ${velocity} km/h
-       - Ubicación: ${mapsLink}
+    const mensaje = `*Información del Burrito* 🚍
+       📍 Paradero: ${lastStopName}
+       📍 Distancia: ${lastStopDistance} m
+       📍 Estado: ${estado} 
+       📍 Velocidad: ${velocity} km/h
+       📍 Ubicación: ${mapsLink}
     `;
     return mensaje;
   } catch (error) {
