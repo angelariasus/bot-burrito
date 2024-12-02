@@ -33,11 +33,11 @@ async function obtenerInformacionDelBus() {
       : 'Desconocida';
 
     const mensaje = `*Información del Burrito* 🚍
-       📍 Paradero: ${lastStopName}
-       📍 Distancia: ${lastStopDistance} m
-       📍 Estado: ${estado} 
-       📍 Velocidad: ${velocity} km/h
-       📍 Ubicación: ${mapsLink}
+    📍 Paradero: ${lastStopName}
+    📍 Distancia: ${lastStopDistance} m
+    📍 Estado: ${estado} 
+    📍 Velocidad: ${velocity} km/h
+    📍 Ubicación: ${mapsLink}
     `;
     return mensaje;
   } catch (error) {
@@ -56,9 +56,9 @@ app.post('/webhook', async (req, res) => {
 
   let responseMessage = 'Lo siento, no entiendo ese comando.';
 
-  if (message === 'bus') {
+  if (message === 'Bus') {
     responseMessage = await obtenerInformacionDelBus();
-  } else if (message === 'ayuda') {
+  } else if (message === 'Ayuda') {
     responseMessage = 'Envía "bus" para obtener la información del bus.';
   }
 
