@@ -12,11 +12,13 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-const apiUrl = 'https://api.contigosanmarcos.com/status?count=1';
+const apiUrlBus = 'https://api.contigosanmarcos.com/status?count=1';
+const apiUrlAforo = 'https://contador-production-5202.up.railway.app/contador';
+const apiBaseUrl = 'https://api-0cws.onrender.com';
 
 async function obtenerInformacionDelBus() {
   try {
-    const response = await axios.get(apiUrl);
+    const response = await axios.get(apiUrlBus);
     const { positions, last_stop } = response.data;
 
     const lastStopName = last_stop ? last_stop.name : 'Desconocida';
@@ -37,12 +39,90 @@ async function obtenerInformacionDelBus() {
     📍 Distancia: ${lastStopDistance} m
     📍 Estado: ${estado} 
     📍 Velocidad: ${velocity} km/h
-    📍 Ubicación: ${mapsLink}
-    `;
+    📍 Ubicación: ${mapsLink}`;
     return mensaje;
   } catch (error) {
     console.error('Error al obtener la información del bus:', error);
     return 'No se pudo obtener la información del bus en este momento.';
+  }
+}
+
+async function obtenerAforoDelBus() {
+  try {
+    const response = await axios.get(apiUrlAforo);
+    const { suben, bajan } = response.data;
+
+    const diferencia = suben - bajan;
+
+    if (diferencia > 15) {
+      await client.messages.create({
+        from: fromNumber,
+        to: fromNumber, // Cambiar al número destinatario correcto si es necesario
+        contentType: 'application/json',
+        interactive: {
+          type: 'button',
+          header: {
+            type: 'text',
+            text: '⚠️ ALERTA DE AFORO ⚠️'
+          },
+          body: {
+            text: `La diferencia (suben - bajan) es de ${diferencia}, excediendo el aforo máximo. ¿Desea desbloquear las puertas?`
+          },
+          action: {
+            buttons: [
+              {
+                type: 'reply',
+                reply: {
+                  id: 'unlock_yes',
+                  title: 'Sí'
+                }
+              },
+              {
+                type: 'reply',
+                reply: {
+                  id: 'unlock_no',
+                  title: 'No'
+                }
+              }
+            ]
+          }
+        }
+      });
+    }
+
+    const mensaje = `*Información de Aforo* 🚍
+    👤 Personas que suben: ${suben}
+    👤 Personas que bajan: ${bajan}
+    👤 Diferencia (suben - bajan): ${diferencia}`;
+    return mensaje;
+  } catch (error) {
+    console.error('Error al obtener la información de aforo:', error);
+    return 'No se pudo obtener la información de aforo en este momento.';
+  }
+}
+
+async function desbloquearPuertas() {
+  try {
+    const response = await fetch(`${apiBaseUrl}/actualizar-puertas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ puerta1: 180, puerta2: 180 })
+    });
+    const data = await response.json();
+    console.log("Puertas actualizadas:", data);
+    return "Puertas desbloqueadas exitosamente.";
+  } catch (error) {
+    console.error("Error al actualizar puertas:", error);
+    return "Hubo un error al intentar desbloquear las puertas.";
+  }
+}
+
+async function verificarAforoPeriodicamente() {
+  try {
+    console.log("Verificando el estado del aforo...");
+    await obtenerAforoDelBus();
+  } catch (error) {
+    console.error("Error al verificar el aforo periódicamente:", error);
   }
 }
 
@@ -56,10 +136,20 @@ app.post('/webhook', async (req, res) => {
 
   let responseMessage = 'Lo siento, no entiendo ese comando.';
 
-  if (message === 'bus') {
+  if (req.body.InteractiveResponse) {
+    const buttonId = req.body.InteractiveResponse.id;
+
+    if (buttonId === 'unlock_yes') {
+      responseMessage = await desbloquearPuertas();
+    } else if (buttonId === 'unlock_no') {
+      responseMessage = 'Operación cancelada. Las puertas no se han desbloqueado.';
+    }
+  } else if (message === 'bus') {
     responseMessage = await obtenerInformacionDelBus();
   } else if (message === 'ayuda') {
-    responseMessage = 'Envía "bus" para obtener la información del bus.';
+    responseMessage = 'Envía "bus" para obtener la información del bus o "aforo" para el estado de las personas.';
+  } else if (message === 'aforo') {
+    responseMessage = await obtenerAforoDelBus();
   }
 
   await client.messages.create({
@@ -70,6 +160,8 @@ app.post('/webhook', async (req, res) => {
 
   res.send('<Response></Response>'); 
 });
+
+setInterval(verificarAforoPeriodicamente, 60000); // Verifica el aforo cada 60 segundos
 
 app.listen(3000, () => {
   console.log('Servidor escuchando en el puerto 3000');
