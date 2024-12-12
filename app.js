@@ -53,13 +53,6 @@ async function obtenerAforoDelBus() {
     const { suben , bajan , subenParadero , bajanParadero } = response.data;
 
     const diferencia = suben - bajan;
-
-    if (diferencia > 15) {
-      const alertMessage = `⚠️ *ALERTA DE AFORO* ⚠️\nLa diferencia (suben - bajan) es de ${diferencia}, excediendo el aforo máximo.\n¿Desea desbloquear las puertas? Responda con "si" o "no".`;
-      return alertMessage;
-      });
-    }
-
     const mensaje = `*Información de Aforo* 🚍
     👤 Aforo actual: ${diferencia}
     En el último paradero:
