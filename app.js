@@ -56,10 +56,7 @@ async function obtenerAforoDelBus() {
 
     if (diferencia > 15) {
       const alertMessage = `⚠️ *ALERTA DE AFORO* ⚠️\nLa diferencia (suben - bajan) es de ${diferencia}, excediendo el aforo máximo.\n¿Desea desbloquear las puertas? Responda con "si" o "no".`;
-      await client.messages.create({
-        body: alertMessage,
-        from: fromNumber,
-        to: fromNumber // Cambiar al número destinatario correcto si es necesario
+      return alertMessage;
       });
     }
 
